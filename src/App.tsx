@@ -12,10 +12,11 @@ import Saved from './pages/Saved';
 import Memories from './pages/Memories';
 import Settings from './pages/Settings';
 import Profile from './pages/Profile';
+import { AuthProvider } from './contexts/AuthContext';
 
 export default function App() {
   return (
-    <>
+    <AuthProvider>
       <Toaster theme="dark" position="bottom-right" />
       <Router>
         <Routes>
@@ -34,6 +35,6 @@ export default function App() {
           </Route>
         </Routes>
       </Router>
-    </>
+    </AuthProvider>
   );
 }

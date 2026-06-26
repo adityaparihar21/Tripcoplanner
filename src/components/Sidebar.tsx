@@ -1,8 +1,10 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Plane, Bookmark, MessageSquare, Image, Settings, Sun, Moon, User } from 'lucide-react';
+import { LayoutDashboard, Plane, Bookmark, MessageSquare, Image, Settings, Sun, Moon, User as UserIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function Sidebar() {
+  const { user } = useAuth();
   const [isDark, setIsDark] = useState(() => {
     return document.documentElement.classList.contains('light') ? false : true;
   });
@@ -80,7 +82,7 @@ export default function Sidebar() {
             }`
           }
         >
-          <User className="w-5 h-5 shrink-0" />
+          <UserIcon className="w-5 h-5 shrink-0" />
           <span className="text-sm">Profile</span>
         </NavLink>
         <NavLink
@@ -99,12 +101,16 @@ export default function Sidebar() {
         
         {/* User Profile Mini */}
         <div className="mt-4 flex items-center space-x-3 px-4 py-3 border-t border-neutral pt-6">
-          <div className="w-8 h-8 rounded-full bg-neutral-light overflow-hidden">
-            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop" alt="User" />
+          <div className="w-8 h-8 rounded-full bg-neutral-light overflow-hidden flex items-center justify-center shrink-0">
+            {user?.user_metadata?.avatar_url ? (
+              <img src={user.user_metadata.avatar_url} alt="User" />
+            ) : (
+              <UserIcon className="w-4 h-4 text-secondary/60" />
+            )}
           </div>
-          <div className="flex flex-col">
-            <span className="text-sm font-medium">Alex Chen</span>
-            <span className="text-xs text-secondary/40">Pro Member</span>
+          <div className="flex flex-col truncate">
+            <span className="text-sm font-medium truncate">{user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Guest'}</span>
+            <span className="text-xs text-secondary/40">{user ? 'Member' : 'Not signed in'}</span>
           </div>
         </div>
       </div>

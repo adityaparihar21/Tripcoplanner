@@ -1,13 +1,73 @@
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Plane, ArrowRight, Github } from 'lucide-react';
+import { Plane, ArrowRight, Github, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { supabase } from '../lib/supabase';
 
 export default function Auth() {
   const navigate = useNavigate();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleAuth = (e: FormEvent) => {
+  useEffect(() => {
+    // Check if user is already logged in
+    supabase?.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        navigate('/dashboard');
+      }
+    });
+  }, [navigate]);
+
+  const handleAuth = async (e: FormEvent) => {
     e.preventDefault();
-    navigate('/dashboard');
+    if (!supabase) {
+      toast.error('Authentication is not configured.');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      if (isSignUp) {
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+        });
+        if (error) throw error;
+        toast.success('Check your email for the confirmation link!');
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        if (error) throw error;
+        navigate('/dashboard');
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Authentication failed');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleOAuth = async (provider: 'google' | 'github') => {
+    if (!supabase) {
+      toast.error('Authentication is not configured.');
+      return;
+    }
+    
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`
+        }
+      });
+      if (error) throw error;
+    } catch (error: any) {
+      toast.error(error.message || 'Authentication failed');
+    }
   };
 
   return (
@@ -23,9 +83,11 @@ export default function Auth() {
           </Link>
 
           <div>
-            <h2 className="mt-6 text-3xl font-serif text-secondary">Welcome back</h2>
+            <h2 className="mt-6 text-3xl font-serif text-secondary">
+              {isSignUp ? 'Create an account' : 'Welcome back'}
+            </h2>
             <p className="mt-2 text-sm text-secondary/60">
-              Sign in to continue planning your next adventure.
+              {isSignUp ? 'Sign up to start planning your next adventure.' : 'Sign in to continue planning your next adventure.'}
             </p>
           </div>
 
@@ -42,7 +104,28 @@ export default function Auth() {
                     type="email"
                     autoComplete="email"
                     required
-                    defaultValue="alex@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="alex@example.com"
+                    className="appearance-none block w-full px-4 py-3 bg-neutral border border-neutral-light rounded-xl text-secondary placeholder-secondary/30 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-colors"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium text-secondary/80">
+                  Password
+                </label>
+                <div className="mt-1">
+                  <input
+                    id="password"
+                    name="password"
+                    type="password"
+                    autoComplete="current-password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
                     className="appearance-none block w-full px-4 py-3 bg-neutral border border-neutral-light rounded-xl text-secondary placeholder-secondary/30 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-colors"
                   />
                 </div>
@@ -51,10 +134,17 @@ export default function Auth() {
               <div>
                 <button
                   type="submit"
-                  className="w-full flex justify-center items-center px-4 py-3 border border-transparent rounded-xl shadow-sm text-sm font-medium text-tertiary bg-primary hover:bg-primary-hover transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary focus:ring-offset-tertiary space-x-2"
+                  disabled={isLoading}
+                  className="w-full flex justify-center items-center px-4 py-3 border border-transparent rounded-xl shadow-sm text-sm font-medium text-tertiary bg-primary hover:bg-primary-hover transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary focus:ring-offset-tertiary space-x-2 disabled:opacity-50"
                 >
-                  <span>Continue with Email</span>
-                  <ArrowRight className="w-4 h-4" />
+                  {isLoading ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <>
+                      <span>{isSignUp ? 'Sign up' : 'Sign in'}</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
                 </button>
               </div>
             </form>
@@ -72,7 +162,7 @@ export default function Auth() {
               <div className="mt-6 grid grid-cols-2 gap-3">
                 <button
                   type="button"
-                  onClick={() => navigate('/dashboard')}
+                  onClick={() => handleOAuth('google')}
                   className="w-full flex justify-center items-center px-4 py-3 border border-neutral-light rounded-xl shadow-sm bg-neutral text-sm font-medium text-secondary hover:bg-neutral-light transition-colors"
                 >
                   <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
@@ -97,7 +187,7 @@ export default function Auth() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => navigate('/dashboard')}
+                  onClick={() => handleOAuth('github')}
                   className="w-full flex justify-center items-center px-4 py-3 border border-neutral-light rounded-xl shadow-sm bg-neutral text-sm font-medium text-secondary hover:bg-neutral-light transition-colors"
                 >
                   <Github className="w-5 h-5 mr-2" />
@@ -107,9 +197,12 @@ export default function Auth() {
             </div>
             
             <p className="mt-8 text-center text-sm text-secondary/60">
-              Don't have an account?{' '}
-              <button onClick={() => navigate('/dashboard')} className="font-medium text-primary hover:text-primary-hover bg-transparent border-none p-0 cursor-pointer">
-                Sign up
+              {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
+              <button 
+                onClick={() => setIsSignUp(!isSignUp)} 
+                className="font-medium text-primary hover:text-primary-hover bg-transparent border-none p-0 cursor-pointer"
+              >
+                {isSignUp ? 'Sign in' : 'Sign up'}
               </button>
             </p>
           </div>
