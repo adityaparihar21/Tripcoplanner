@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { MapPin, Calendar, ArrowLeft, CloudSun, Info, ChevronRight, Check, X, Clock, Download } from 'lucide-react';
+import { MapPin, Calendar, ArrowLeft, CloudSun, Info, ChevronRight, Check, X, Clock, Download, Search } from 'lucide-react';
 import jsPDF from 'jspdf';
 
 export default function TripDetail() {
@@ -11,6 +11,7 @@ export default function TripDetail() {
   const [isMapView, setIsMapView] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const saved = localStorage.getItem('tripco-trips');
@@ -105,6 +106,24 @@ export default function TripDetail() {
 
   const hasItinerary = trip.itinerary && trip.itinerary.length > 0;
 
+  const filteredItinerary = trip.itinerary?.map((dayPlan: any) => {
+    if (!searchQuery.trim()) return dayPlan;
+
+    const filteredActivities = dayPlan.activities?.filter((activity: any) => {
+      const q = searchQuery.toLowerCase();
+      return (
+        (activity.title && activity.title.toLowerCase().includes(q)) ||
+        (activity.location && activity.location.toLowerCase().includes(q)) ||
+        (activity.note && activity.note.toLowerCase().includes(q))
+      );
+    });
+
+    return {
+      ...dayPlan,
+      activities: filteredActivities
+    };
+  }).filter((dayPlan: any) => dayPlan.activities && dayPlan.activities.length > 0);
+
   return (
     <div className="flex-1 overflow-y-auto bg-tertiary">
       {/* Header Image */}
@@ -131,8 +150,23 @@ export default function TripDetail() {
         
         {/* Main Content */}
         <div className="flex-1">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-2xl font-serif">Itinerary</h2>
+          <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+            <div className="flex items-center gap-4 flex-1">
+              <h2 className="text-2xl font-serif">Itinerary</h2>
+              {hasItinerary && !isMapView && (
+                <div className="relative flex-1 max-w-md hidden sm:block">
+                  <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-secondary/40" />
+                  <input
+                    type="text"
+                    placeholder="Search activities, places..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full bg-neutral border border-neutral-light rounded-full pl-9 pr-4 py-2 text-sm focus:outline-none focus:border-primary/50 transition-colors"
+                  />
+                </div>
+              )}
+            </div>
+            
             <div className="flex space-x-2">
               <button 
                 onClick={handleExportPDF}
@@ -178,12 +212,25 @@ export default function TripDetail() {
             </div>
           ) : (
             <div className="space-y-12">
+              {hasItinerary && (
+                <div className="relative mb-6 sm:hidden">
+                  <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-secondary/40" />
+                  <input
+                    type="text"
+                    placeholder="Search activities..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full bg-neutral border border-neutral-light rounded-full pl-9 pr-4 py-2 text-sm focus:outline-none focus:border-primary/50 transition-colors"
+                  />
+                </div>
+              )}
+              
               {!hasItinerary ? (
                 <div className="bg-neutral border border-neutral-light rounded-2xl p-8 text-center">
                   <p className="text-secondary/60 mb-4">No detailed itinerary has been generated for this trip yet.</p>
                 </div>
-              ) : (
-                trip.itinerary.map((dayPlan: any, dayIdx: number) => (
+              ) : filteredItinerary && filteredItinerary.length > 0 ? (
+                filteredItinerary.map((dayPlan: any, dayIdx: number) => (
                   <div key={dayIdx}>
                     <h3 className="text-xl font-medium mb-6 text-secondary border-b border-neutral-light pb-2">
                       Day {dayPlan.day} • <span className="text-secondary/60 text-base font-normal">{dayPlan.date}</span>
@@ -238,6 +285,10 @@ export default function TripDetail() {
                     </div>
                   </div>
                 ))
+              ) : (
+                <div className="bg-neutral border border-neutral-light rounded-2xl p-8 text-center">
+                  <p className="text-secondary/60">No activities found matching your search "{searchQuery}".</p>
+                </div>
               )}
             </div>
           )}
