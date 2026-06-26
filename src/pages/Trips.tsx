@@ -23,6 +23,21 @@ export default function Trips() {
     ];
   });
 
+  useEffect(() => {
+    const handleStorage = () => {
+      const saved = localStorage.getItem('tripco-trips');
+      if (saved) {
+        try {
+          setTrips(JSON.parse(saved));
+        } catch (e) {
+          // ignore
+        }
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [newTrip, setNewTrip] = useState({
@@ -34,7 +49,10 @@ export default function Trips() {
   });
 
   useEffect(() => {
-    localStorage.setItem('tripco-trips', JSON.stringify(trips));
+    // Only save if trips length is greater than 0 so we don't accidentally wipe it
+    if (trips && trips.length > 0) {
+      localStorage.setItem('tripco-trips', JSON.stringify(trips));
+    }
   }, [trips]);
 
   const handleCreateTrip = async (e: React.FormEvent) => {

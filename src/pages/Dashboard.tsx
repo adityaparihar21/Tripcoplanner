@@ -11,13 +11,20 @@ export default function DashboardOverview() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const tripsData = localStorage.getItem('tripco-trips');
-    if (tripsData) {
-      const trips = JSON.parse(tripsData);
-      if (trips && trips.length > 0) {
-        setRecentTrip(trips[0]);
+    const loadTrip = () => {
+      const tripsData = localStorage.getItem('tripco-trips');
+      if (tripsData) {
+        const trips = JSON.parse(tripsData);
+        if (trips && trips.length > 0) {
+          setRecentTrip(trips[0]);
+        }
       }
-    }
+    };
+    
+    loadTrip();
+    
+    window.addEventListener('storage', loadTrip);
+    return () => window.removeEventListener('storage', loadTrip);
   }, []);
 
   if (!recentTrip) {

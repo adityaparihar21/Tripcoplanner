@@ -137,7 +137,55 @@ Respond with a JSON object with this exact structure:
   }
 });
 
-// In-memory storage for shared trips (for prototype purposes)
+// API Endpoint for Copilot Chat
+app.post('/api/copilot-chat', async (req, res) => {
+  try {
+    const { messages, currentTrip } = req.body;
+    
+    if (!messages || !Array.isArray(messages)) {
+      return res.status(400).json({ error: 'Messages array is required' });
+    }
+
+    const ai = getAiClient();
+    
+    // We want to force JSON response to easily extract updatedTrip and reply
+    const prompt = `You are an expert AI Travel Assistant Copilot.
+The user is viewing or editing their trip. 
+Here is their current trip data (JSON):
+${currentTrip ? JSON.stringify(currentTrip) : 'No active trip provided.'}
+
+Here is the conversation history:
+${messages.map((m: any) => `${m.role}: ${m.text}`).join('\n')}
+
+Based on the latest user message, respond appropriately. 
+CRITICAL: You must adopt a highly suggestive, proactive, and helpful tone. Instead of just answering questions flatly, always offer tailored recommendations, alternative ideas, or next steps to enhance their trip. Gently guide them toward great travel experiences.
+
+If the user asks to modify the trip (e.g. reduce budget, add a place, change schedule), you MUST modify the trip data accordingly and return the complete updated trip object.
+If the user is just asking a question, answer it suggestively, and return the trip unchanged.
+
+Respond with a JSON object with this exact structure:
+{
+  "reply": "Your suggestive and conversational response to the user, acting as the proactive copilot",
+  "updatedTrip": { ... the full trip JSON object, updated if necessary, or same as before if no changes }
+}`;
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt,
+      config: {
+        responseMimeType: 'application/json',
+      }
+    });
+
+    const resultText = response.text || "{}";
+    const result = JSON.parse(resultText);
+
+    res.json(result);
+  } catch (error) {
+    console.error('Error in copilot chat:', error);
+    res.status(500).json({ error: 'Failed to process chat' });
+  }
+});
 const sharedTrips = new Map<string, any>();
 
 app.post('/api/share', (req, res) => {

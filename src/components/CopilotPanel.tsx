@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
-import { Send, Sparkles } from 'lucide-react';
+import { Send, Sparkles, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Message {
@@ -9,13 +9,12 @@ interface Message {
 }
 
 const INITIAL_MESSAGES: Message[] = [
-  { role: 'assistant', text: "I've organized the Tokyo itinerary. I noticed you prefer less walking. Should I swap the Ueno Park visit with a closer attraction to your hotel?" },
-  { role: 'user', text: "Yes, please. What are the alternatives nearby?" },
-  { role: 'assistant', text: "I can substitute it with the Nezu Museum. It's only 10 mins away by car and features a beautiful private garden. I'll update the itinerary and recalculate the budget." }
+  { role: 'assistant', text: "Hi! I'm your AI Travel Copilot. How can I help you adjust your itinerary today?" }
 ];
 
 export default function CopilotPanel() {
   const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   
   const [messages, setMessages] = useState<Message[]>(() => {
     const saved = localStorage.getItem('tripco-copilot-messages');
@@ -36,37 +35,76 @@ export default function CopilotPanel() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  const processChat = async (userMessage: string) => {
+    const newMessages = [...messages, { role: 'user', text: userMessage }];
+    setMessages(newMessages);
+    setIsLoading(true);
+
+    try {
+      // Get current trip from local storage
+      const tripsData = localStorage.getItem('tripco-trips');
+      let currentTrip = null;
+      if (tripsData) {
+        const trips = JSON.parse(tripsData);
+        if (trips && trips.length > 0) {
+          currentTrip = trips[0]; // Assuming working on the most recent trip
+        }
+      }
+
+      const response = await fetch('/api/copilot-chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          messages: newMessages,
+          currentTrip
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get response');
+      }
+
+      const data = await response.json();
+      
+      setMessages(prev => [...prev, { role: 'assistant', text: data.reply || "I've processed your request." }]);
+
+      if (data.updatedTrip && currentTrip) {
+        // If the AI updated the trip, save it back
+        const tripsData = localStorage.getItem('tripco-trips');
+        if (tripsData) {
+          const trips = JSON.parse(tripsData);
+          const updatedTrips = trips.map((t: any) => t.id === data.updatedTrip.id ? data.updatedTrip : t);
+          // If the AI didn't pass back an ID or it didn't match, we fallback to updating the first one
+          if (!updatedTrips.some((t: any) => t.id === data.updatedTrip.id)) {
+             updatedTrips[0] = data.updatedTrip;
+          }
+          localStorage.setItem('tripco-trips', JSON.stringify(updatedTrips));
+          window.dispatchEvent(new Event('storage')); // Trigger update across tabs/components
+          toast.success("Itinerary updated!");
+        }
+      }
+
+    } catch (error) {
+      console.error(error);
+      toast.error('Copilot encountered an error.');
+      setMessages(prev => [...prev, { role: 'assistant', text: "Sorry, I couldn't process that right now." }]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleSend = () => {
-    if (!input.trim()) return;
-    
-    setMessages(prev => [...prev, { role: 'user', text: input }]);
+    if (!input.trim() || isLoading) return;
+    const msg = input;
     setInput('');
-    
-    setTimeout(() => {
-      setMessages(prev => [...prev, { role: 'assistant', text: "I've updated your itinerary based on your request. Let me know if you need anything else!" }]);
-    }, 1000);
+    processChat(msg);
   };
 
   const handleSuggestion = (suggestion: string) => {
-    setInput(suggestion);
-    setTimeout(() => {
-      setMessages(prev => [...prev, { role: 'user', text: suggestion }]);
-      setInput('');
-      setTimeout(() => {
-        setMessages(prev => [...prev, { role: 'assistant', text: "I've updated your itinerary based on your request. Let me know if you need anything else!" }]);
-      }, 1000);
-    }, 100);
-  };
-
-  const handleAction = (action: string) => {
-    if (action === "Undo Itinerary Change") {
-      setMessages(prev => prev.slice(0, prev.length - 2));
-      toast.success("Itinerary change undone.");
-      return;
-    }
-    toast.success(`Action Triggered: ${action}`, {
-      description: "The AI agent is processing this request."
-    });
+    if (isLoading) return;
+    processChat(suggestion);
   };
 
   const clearChat = () => {
@@ -104,24 +142,16 @@ export default function CopilotPanel() {
             }`}>
               {msg.text}
             </div>
-            {msg.role === 'assistant' && i === 2 && msg.text === INITIAL_MESSAGES[2].text && (
-              <div className="mt-2 flex gap-2">
-                <button 
-                  onClick={() => handleAction("Undo Itinerary Change")}
-                  className="text-xs bg-neutral px-3 py-1.5 rounded-full border border-neutral-light hover:border-primary/50 transition-colors"
-                >
-                  Undo Change
-                </button>
-                <button 
-                  onClick={() => handleAction("View Nezu Museum on Map")}
-                  className="text-xs bg-neutral px-3 py-1.5 rounded-full border border-neutral-light hover:border-primary/50 transition-colors"
-                >
-                  View Map
-                </button>
-              </div>
-            )}
           </motion.div>
         ))}
+        {isLoading && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-start">
+             <div className="bg-primary/10 text-primary border border-primary/20 rounded-2xl rounded-tl-sm p-4 text-sm flex items-center space-x-2">
+               <Loader2 className="w-4 h-4 animate-spin" />
+               <span>Thinking...</span>
+             </div>
+          </motion.div>
+        )}
         <div ref={messagesEndRef} />
       </div>
 
@@ -149,11 +179,12 @@ export default function CopilotPanel() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-            className="w-full bg-neutral border border-neutral-light rounded-xl pl-4 pr-12 py-3 text-sm focus:outline-none focus:border-primary/50 transition-colors placeholder:text-secondary/30"
+            disabled={isLoading}
+            className="w-full bg-neutral border border-neutral-light rounded-xl pl-4 pr-12 py-3 text-sm focus:outline-none focus:border-primary/50 transition-colors placeholder:text-secondary/30 disabled:opacity-50"
           />
           <button 
             onClick={handleSend}
-            disabled={!input.trim()}
+            disabled={!input.trim() || isLoading}
             className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors disabled:opacity-50"
           >
             <Send className="w-4 h-4" />

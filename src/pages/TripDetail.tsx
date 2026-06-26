@@ -21,14 +21,21 @@ export default function TripDetail() {
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    const saved = localStorage.getItem('tripco-trips');
-    if (saved) {
-      const parsedTrips = JSON.parse(saved);
-      const foundTrip = parsedTrips.find((t: any) => t.id === id);
-      if (foundTrip) {
-        setTrip(foundTrip);
+    const loadTrip = () => {
+      const saved = localStorage.getItem('tripco-trips');
+      if (saved) {
+        const parsedTrips = JSON.parse(saved);
+        const foundTrip = parsedTrips.find((t: any) => t.id === id);
+        if (foundTrip) {
+          setTrip(foundTrip);
+        }
       }
-    }
+    };
+    
+    loadTrip();
+    
+    window.addEventListener('storage', loadTrip);
+    return () => window.removeEventListener('storage', loadTrip);
   }, [id]);
 
   const handleShare = async () => {
