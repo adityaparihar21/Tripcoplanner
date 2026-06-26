@@ -1,1 +1,35 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,400&display=swap');
 @import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Newsreader", ui-serif, Georgia, serif;
+  
+  --color-primary: #D4AF37;
+  --color-primary-hover: #b8972e;
+  --color-secondary: #FDFCFB;
+  --color-tertiary: #121212;
+  --color-neutral: #2A2A2A;
+  --color-neutral-light: #3A3A3A;
+  
+  /* Additional Accents */
+  --color-ocean: #2B5B84;
+  --color-emerald: #2E5A44;
+  --color-sunset: #D96C4A;
+  --color-sand: #E5D3B3;
+}
+
+@layer utilities {
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+body {
+  background-color: var(--color-tertiary);
+  color: var(--color-secondary);
+}

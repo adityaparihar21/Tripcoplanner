@@ -1,24 +1,25 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
-
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Home from './pages/Home';
-import ProductDetails from './pages/ProductDetails';
-import Cart from './pages/Cart';
-import Layout from './components/Layout';
+import { Toaster } from 'sonner';
+import Landing from './pages/Landing';
+import DashboardLayout from './components/DashboardLayout';
+import DashboardOverview from './pages/Dashboard';
+import Auth from './pages/Auth';
+import PlaceholderView from './pages/PlaceholderView';
 
 export default function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Layout />}>
-          <Route index element={<Home />} />
-          <Route path="product/:id" element={<ProductDetails />} />
-          <Route path="cart" element={<Cart />} />
-        </Route>
-      </Routes>
-    </Router>
+    <>
+      <Toaster theme="dark" position="bottom-right" />
+      <Router>
+        <Routes>
+          <Route path="/" element={<Landing />} />
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/dashboard" element={<DashboardLayout />}>
+            <Route index element={<DashboardOverview />} />
+            <Route path="*" element={<PlaceholderView />} />
+          </Route>
+        </Routes>
+      </Router>
+    </>
   );
 }

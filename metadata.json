@@ -1,6 +1,6 @@
 {
-  "name": "Aura Home",
-  "description": "Curated lifestyle and home goods e-commerce app.",
+  "name": "TripCo",
+  "description": "The AI Travel Operating System",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
