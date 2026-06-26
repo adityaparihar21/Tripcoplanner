@@ -46,7 +46,11 @@ app.post('/api/generate-trip', async (req, res) => {
     const prompt = `Generate a travel trip plan for ${destination}. 
 Date: ${date || 'Flexible'}
 Guests: ${guests || 2}
-Budget: ${budget || 'Standard'}
+Travel Style (Budget level): ${budget || 'Moderate'}
+
+CRITICAL INSTRUCTION FOR BUDGET:
+Analyze the typical costs for the destination (${destination}). Based on the "Travel Style" provided (${budget}), estimate realistic total monetary costs in USD for the entire trip duration for all ${guests} guests. 
+Important: For the "food" breakdown, explicitly keep in mind 2 substantial meals per day for all guests throughout the trip.
 
 Respond with a JSON object with this exact structure:
 {

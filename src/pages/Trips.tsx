@@ -195,15 +195,18 @@ export default function Trips() {
                 />
               </div>
               <div>
-                <label className="block text-sm text-secondary/70 mb-1.5">Estimated Budget</label>
-                <input 
-                  type="text" 
+                <label className="block text-sm text-secondary/70 mb-1.5">Travel Style (Budget)</label>
+                <select 
                   required
-                  placeholder="e.g. $2000"
                   value={newTrip.budget}
                   onChange={(e) => setNewTrip({...newTrip, budget: e.target.value})}
-                  className="w-full bg-neutral border border-neutral-light rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary/50 transition-colors text-secondary placeholder:text-secondary/30"
-                />
+                  className="w-full bg-neutral border border-neutral-light rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary/50 transition-colors text-secondary"
+                >
+                  <option value="" disabled>Select style...</option>
+                  <option value="Backpacker">Backpacker (Budget-friendly)</option>
+                  <option value="Moderate">Moderate (Standard)</option>
+                  <option value="Luxury">Luxury (Premium)</option>
+                </select>
               </div>
               <button 
                 type="submit" 
