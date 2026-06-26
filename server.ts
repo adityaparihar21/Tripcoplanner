@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI } from '@google/genai';
+import { createClient } from '@supabase/supabase-js';
 
 dotenv.config();
 
@@ -25,6 +26,11 @@ const getAiClient = () => {
   }
   return aiClient;
 };
+
+// Initialize Supabase Client
+const supabaseUrl = process.env.SUPABASE_URL || '';
+const supabaseKey = process.env.SUPABASE_ANON_KEY || '';
+const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
 
 // API Endpoint to generate a trip
 app.post('/api/generate-trip', async (req, res) => {
@@ -90,8 +96,7 @@ Respond with a JSON object with this exact structure:
     const resultText = response.text || "{}";
     const result = JSON.parse(resultText);
 
-    res.json({
-      id: Math.random().toString(36).substring(2, 11),
+    const tripData = {
       title: result.title || `Trip to ${destination}`,
       date: date || 'Flexible dates',
       status: 'Upcoming',
@@ -102,6 +107,28 @@ Respond with a JSON object with this exact structure:
       centerCoordinates: result.centerCoordinates || { lat: 0, lng: 0 },
       budgetBreakdown: result.budgetBreakdown || { hotel: 0, food: 0, transport: 0, activities: 0 },
       itinerary: result.itinerary || []
+    };
+
+    let tripId = Math.random().toString(36).substring(2, 11);
+
+    // Save to Supabase if configured
+    if (supabase) {
+      const { data, error } = await supabase
+        .from('trips')
+        .insert([tripData])
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('Supabase insert error:', error);
+      } else if (data && data.id) {
+        tripId = data.id;
+      }
+    }
+
+    res.json({
+      id: tripId,
+      ...tripData
     });
 
   } catch (error) {
