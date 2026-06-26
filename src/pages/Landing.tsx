@@ -8,7 +8,8 @@ import Navigation from '../components/Navigation';
 export default function Landing() {
   const navigate = useNavigate();
   const [destination, setDestination] = useState('');
-  const [date, setDate] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [guests, setGuests] = useState('2');
   const [isPlanning, setIsPlanning] = useState(false);
   const [planningStep, setPlanningStep] = useState(0);
@@ -90,17 +91,27 @@ export default function Landing() {
                     />
                   </div>
                   
-                  <div className="flex items-center px-4 py-3 md:py-2 w-full md:w-auto border-t md:border-t-0 md:border-l border-neutral-light group">
+                  <div className="flex items-center px-4 py-3 md:py-2 w-full md:w-auto border-t md:border-t-0 md:border-l border-neutral-light group min-w-[200px]">
                     <Calendar className="w-5 h-5 text-secondary/40 mr-3 shrink-0" />
                     <div className="flex flex-col w-full">
                       <span className="text-[10px] text-secondary/50 font-medium uppercase tracking-wider mb-0.5">Dates</span>
-                      <input 
-                        type="date" 
-                        value={date}
-                        onChange={(e) => setDate(e.target.value)}
-                        className="bg-transparent text-sm outline-none text-secondary [&::-webkit-calendar-picker-indicator]:invert-[0.8] w-full" 
-                        disabled={isPlanning}
-                      />
+                      <div className="flex items-center space-x-2">
+                        <input 
+                          type="date" 
+                          value={startDate}
+                          onChange={(e) => setStartDate(e.target.value)}
+                          className="bg-transparent text-sm outline-none text-secondary [&::-webkit-calendar-picker-indicator]:invert-[0.8] w-full max-w-[120px]" 
+                          disabled={isPlanning}
+                        />
+                        <span className="text-secondary/40">-</span>
+                        <input 
+                          type="date" 
+                          value={endDate}
+                          onChange={(e) => setEndDate(e.target.value)}
+                          className="bg-transparent text-sm outline-none text-secondary [&::-webkit-calendar-picker-indicator]:invert-[0.8] w-full max-w-[120px]" 
+                          disabled={isPlanning}
+                        />
+                      </div>
                     </div>
                   </div>
 

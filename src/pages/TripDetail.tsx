@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { MapPin, Calendar, ArrowLeft, CloudSun, Info, ChevronRight, Check, X, Clock, Download, Search } from 'lucide-react';
+import { MapPin, Calendar, ArrowLeft, CloudSun, Info, ChevronRight, Check, X, Clock, Download, Search, DollarSign } from 'lucide-react';
 import jsPDF from 'jspdf';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend } from 'recharts';
+
+const COLORS = ['#D4AF37', '#2B5B84', '#2E5A44', '#D96C4A'];
 
 export default function TripDetail() {
   const { id } = useParams();
@@ -106,6 +109,13 @@ export default function TripDetail() {
 
   const hasItinerary = trip.itinerary && trip.itinerary.length > 0;
 
+  const budgetData = trip.budgetBreakdown ? [
+    { name: 'Hotel', value: trip.budgetBreakdown.hotel || 0 },
+    { name: 'Food', value: trip.budgetBreakdown.food || 0 },
+    { name: 'Transport', value: trip.budgetBreakdown.transport || 0 },
+    { name: 'Activities', value: trip.budgetBreakdown.activities || 0 },
+  ].filter(item => item.value > 0) : [];
+
   const filteredItinerary = trip.itinerary?.map((dayPlan: any) => {
     if (!searchQuery.trim()) return dayPlan;
 
@@ -146,7 +156,7 @@ export default function TripDetail() {
         </div>
       </div>
 
-      <div className="p-6 md:p-10 max-w-5xl mx-auto flex flex-col xl:flex-row gap-8">
+      <div className="p-6 md:p-10 max-w-7xl mx-auto flex flex-col xl:flex-row gap-8">
         
         {/* Main Content */}
         <div className="flex-1">
@@ -293,6 +303,50 @@ export default function TripDetail() {
             </div>
           )}
         </div>
+        
+        {/* Budget Sidebar */}
+        {budgetData.length > 0 && (
+          <div className="w-full xl:w-80 shrink-0 space-y-6">
+            <div className="bg-neutral border border-neutral-light rounded-3xl p-6 shadow-xl relative overflow-hidden group hover:border-primary/50 transition-colors">
+               <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-bl-full -z-10 transition-transform group-hover:scale-110"></div>
+               <h3 className="text-xl font-medium mb-6 flex items-center font-serif text-secondary">
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                    <DollarSign className="w-4 h-4 text-primary" />
+                  </div>
+                  Budget Breakdown
+               </h3>
+               <div className="h-[250px] w-full">
+                 <ResponsiveContainer width="100%" height="100%">
+                   <PieChart>
+                     <Pie 
+                        data={budgetData} 
+                        cx="50%" cy="50%" 
+                        innerRadius={65} outerRadius={85} 
+                        paddingAngle={5} 
+                        dataKey="value"
+                        stroke="none"
+                     >
+                       {budgetData.map((entry, index) => (
+                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                       ))}
+                     </Pie>
+                     <RechartsTooltip 
+                        formatter={(value) => `$${value}`}
+                        contentStyle={{ backgroundColor: 'var(--color-neutral)', borderColor: 'var(--color-neutral-light)', borderRadius: '12px', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                        itemStyle={{ color: 'var(--color-secondary)' }}
+                     />
+                     <Legend 
+                        verticalAlign="bottom" 
+                        height={36} 
+                        iconType="circle"
+                        formatter={(value) => <span className="text-secondary/80 text-sm ml-1">{value}</span>}
+                     />
+                   </PieChart>
+                 </ResponsiveContainer>
+               </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -27,7 +27,8 @@ export default function Trips() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [newTrip, setNewTrip] = useState({
     destination: '',
-    date: '',
+    startDate: '',
+    endDate: '',
     guests: '2',
     budget: ''
   });
@@ -38,17 +39,24 @@ export default function Trips() {
 
   const handleCreateTrip = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newTrip.destination || !newTrip.date || !newTrip.budget) {
+    if (!newTrip.destination || !newTrip.startDate || !newTrip.endDate || !newTrip.budget) {
       toast.error('Please fill in all required fields (Destination, Dates, and Budget)');
       return;
     }
 
     setIsGenerating(true);
     try {
+      const payload = {
+        destination: newTrip.destination,
+        date: `${newTrip.startDate} to ${newTrip.endDate}`,
+        guests: newTrip.guests,
+        budget: newTrip.budget
+      };
+      
       const response = await fetch('/api/generate-trip', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newTrip)
+        body: JSON.stringify(payload)
       });
       
       if (!response.ok) {
@@ -71,7 +79,7 @@ export default function Trips() {
 
       setTrips([createdTrip, ...trips]);
       setIsModalOpen(false);
-      setNewTrip({ destination: '', date: '', guests: '2', budget: '' });
+      setNewTrip({ destination: '', startDate: '', endDate: '', guests: '2', budget: '' });
       toast.success('Trip created successfully!');
     } catch (error) {
       console.error(error);
@@ -138,25 +146,35 @@ export default function Trips() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm text-secondary/70 mb-1.5">Dates</label>
+                  <label className="block text-sm text-secondary/70 mb-1.5">Start Date</label>
                   <input 
                     type="date" 
                     required
-                    value={newTrip.date}
-                    onChange={(e) => setNewTrip({...newTrip, date: e.target.value})}
+                    value={newTrip.startDate}
+                    onChange={(e) => setNewTrip({...newTrip, startDate: e.target.value})}
                     className="w-full bg-neutral border border-neutral-light rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary/50 transition-colors text-secondary [&::-webkit-calendar-picker-indicator]:invert-[0.8]"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm text-secondary/70 mb-1.5">Guests</label>
+                  <label className="block text-sm text-secondary/70 mb-1.5">End Date</label>
                   <input 
-                    type="number" 
-                    min="1"
-                    value={newTrip.guests}
-                    onChange={(e) => setNewTrip({...newTrip, guests: e.target.value})}
-                    className="w-full bg-neutral border border-neutral-light rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary/50 transition-colors text-secondary"
+                    type="date" 
+                    required
+                    value={newTrip.endDate}
+                    onChange={(e) => setNewTrip({...newTrip, endDate: e.target.value})}
+                    className="w-full bg-neutral border border-neutral-light rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary/50 transition-colors text-secondary [&::-webkit-calendar-picker-indicator]:invert-[0.8]"
                   />
                 </div>
+              </div>
+              <div>
+                <label className="block text-sm text-secondary/70 mb-1.5">Guests</label>
+                <input 
+                  type="number" 
+                  min="1"
+                  value={newTrip.guests}
+                  onChange={(e) => setNewTrip({...newTrip, guests: e.target.value})}
+                  className="w-full bg-neutral border border-neutral-light rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary/50 transition-colors text-secondary"
+                />
               </div>
               <div>
                 <label className="block text-sm text-secondary/70 mb-1.5">Estimated Budget</label>

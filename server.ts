@@ -46,6 +46,12 @@ Respond with a JSON object with this exact structure:
 {
   "title": "A creative title for the trip, e.g. 'Tokyo Tech & Temples'",
   "imagePrompt": "A highly detailed, cinematic photography prompt to generate an image representing this trip",
+  "budgetBreakdown": {
+    "hotel": 500,
+    "food": 300,
+    "transport": 150,
+    "activities": 250
+  },
   "itinerary": [
     {
       "day": 1,
@@ -85,6 +91,7 @@ Respond with a JSON object with this exact structure:
       budget,
       guests,
       imagePrompt: result.imagePrompt,
+      budgetBreakdown: result.budgetBreakdown || { hotel: 0, food: 0, transport: 0, activities: 0 },
       itinerary: result.itinerary || []
     });
 

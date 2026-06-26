@@ -10,6 +10,7 @@ import TripDetail from './pages/TripDetail';
 import Saved from './pages/Saved';
 import Memories from './pages/Memories';
 import Settings from './pages/Settings';
+import Profile from './pages/Profile';
 
 export default function App() {
   return (
@@ -26,6 +27,7 @@ export default function App() {
             <Route path="saved" element={<Saved />} />
             <Route path="memories" element={<Memories />} />
             <Route path="settings" element={<Settings />} />
+            <Route path="profile" element={<Profile />} />
             <Route path="*" element={<PlaceholderView />} />
           </Route>
         </Routes>

@@ -5,18 +5,45 @@
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-serif: "Newsreader", ui-serif, Georgia, serif;
   
-  --color-primary: #D4AF37;
-  --color-primary-hover: #b8972e;
-  --color-secondary: #FDFCFB;
-  --color-tertiary: #121212;
-  --color-neutral: #2A2A2A;
-  --color-neutral-light: #3A3A3A;
+  --color-primary: var(--app-primary);
+  --color-primary-hover: var(--app-primary-hover);
+  --color-secondary: var(--app-secondary);
+  --color-tertiary: var(--app-tertiary);
+  --color-neutral: var(--app-neutral);
+  --color-neutral-light: var(--app-neutral-light);
   
-  /* Additional Accents */
-  --color-ocean: #2B5B84;
-  --color-emerald: #2E5A44;
-  --color-sunset: #D96C4A;
-  --color-sand: #E5D3B3;
+  --color-ocean: var(--app-ocean);
+  --color-emerald: var(--app-emerald);
+  --color-sunset: var(--app-sunset);
+  --color-sand: var(--app-sand);
+}
+
+:root {
+  --app-primary: #D4AF37;
+  --app-primary-hover: #b8972e;
+  --app-secondary: #FDFCFB;
+  --app-tertiary: #121212;
+  --app-neutral: #2A2A2A;
+  --app-neutral-light: #3A3A3A;
+  
+  --app-ocean: #2B5B84;
+  --app-emerald: #2E5A44;
+  --app-sunset: #D96C4A;
+  --app-sand: #E5D3B3;
+}
+
+:root.light {
+  --app-primary: #D4AF37;
+  --app-primary-hover: #b8972e;
+  --app-secondary: #121212;
+  --app-tertiary: #FDFCFB;
+  --app-neutral: #F0EBE1;
+  --app-neutral-light: #E0D9CC;
+  
+  --app-ocean: #4B8BC4;
+  --app-emerald: #4E8C6A;
+  --app-sunset: #E27C5A;
+  --app-sand: #C9B283;
 }
 
 @layer utilities {
