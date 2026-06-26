@@ -1,16 +1,40 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
 import { Send, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 
+interface Message {
+  role: string;
+  text: string;
+}
+
+const INITIAL_MESSAGES: Message[] = [
+  { role: 'assistant', text: "I've organized the Tokyo itinerary. I noticed you prefer less walking. Should I swap the Ueno Park visit with a closer attraction to your hotel?" },
+  { role: 'user', text: "Yes, please. What are the alternatives nearby?" },
+  { role: 'assistant', text: "I can substitute it with the Nezu Museum. It's only 10 mins away by car and features a beautiful private garden. I'll update the itinerary and recalculate the budget." }
+];
+
 export default function CopilotPanel() {
   const [input, setInput] = useState('');
   
-  const [messages, setMessages] = useState([
-    { role: 'assistant', text: "I've organized the Tokyo itinerary. I noticed you prefer less walking. Should I swap the Ueno Park visit with a closer attraction to your hotel?" },
-    { role: 'user', text: "Yes, please. What are the alternatives nearby?" },
-    { role: 'assistant', text: "I can substitute it with the Nezu Museum. It's only 10 mins away by car and features a beautiful private garden. I'll update the itinerary and recalculate the budget." }
-  ]);
+  const [messages, setMessages] = useState<Message[]>(() => {
+    const saved = localStorage.getItem('tripco-copilot-messages');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        return INITIAL_MESSAGES;
+      }
+    }
+    return INITIAL_MESSAGES;
+  });
+
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    localStorage.setItem('tripco-copilot-messages', JSON.stringify(messages));
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   const handleSend = () => {
     if (!input.trim()) return;
@@ -25,13 +49,29 @@ export default function CopilotPanel() {
 
   const handleSuggestion = (suggestion: string) => {
     setInput(suggestion);
-    setTimeout(() => handleSend(), 100);
+    setTimeout(() => {
+      setMessages(prev => [...prev, { role: 'user', text: suggestion }]);
+      setInput('');
+      setTimeout(() => {
+        setMessages(prev => [...prev, { role: 'assistant', text: "I've updated your itinerary based on your request. Let me know if you need anything else!" }]);
+      }, 1000);
+    }, 100);
   };
 
   const handleAction = (action: string) => {
+    if (action === "Undo Itinerary Change") {
+      setMessages(prev => prev.slice(0, prev.length - 2));
+      toast.success("Itinerary change undone.");
+      return;
+    }
     toast.success(`Action Triggered: ${action}`, {
       description: "The AI agent is processing this request."
     });
+  };
+
+  const clearChat = () => {
+    setMessages(INITIAL_MESSAGES);
+    toast.success("Chat context reset.");
   };
 
   return (
@@ -41,6 +81,12 @@ export default function CopilotPanel() {
           <Sparkles className="w-5 h-5 text-primary" />
           <h2 className="font-medium">AI Copilot</h2>
         </div>
+        <button 
+          onClick={clearChat}
+          className="text-xs text-secondary/50 hover:text-primary transition-colors"
+        >
+          Reset
+        </button>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-6 hide-scrollbar">
@@ -58,7 +104,7 @@ export default function CopilotPanel() {
             }`}>
               {msg.text}
             </div>
-            {msg.role === 'assistant' && i === 2 && (
+            {msg.role === 'assistant' && i === 2 && msg.text === INITIAL_MESSAGES[2].text && (
               <div className="mt-2 flex gap-2">
                 <button 
                   onClick={() => handleAction("Undo Itinerary Change")}
@@ -76,6 +122,7 @@ export default function CopilotPanel() {
             )}
           </motion.div>
         ))}
+        <div ref={messagesEndRef} />
       </div>
 
       <div className="p-4 bg-tertiary border-t border-neutral">

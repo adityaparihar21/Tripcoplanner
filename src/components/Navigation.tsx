@@ -1,18 +1,25 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Plane, Menu, X, Sparkles } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
-import { toast } from 'sonner';
 
 export default function Navigation() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
 
-  const handlePlaceholderClick = (e: React.MouseEvent, feature: string) => {
+  const handleScrollToSection = (e: React.MouseEvent, sectionId: string) => {
     e.preventDefault();
-    toast.info(`${feature} is coming soon!`, {
-      description: "We are working hard to bring this feature to you."
-    });
     setIsMobileMenuOpen(false);
+    
+    if (location.pathname !== '/') {
+      navigate('/');
+      setTimeout(() => {
+        document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    } else {
+      document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
   return (
@@ -29,9 +36,8 @@ export default function Navigation() {
           </div>
 
           <div className="hidden md:flex space-x-8 items-center">
-            <a href="#" onClick={(e) => handlePlaceholderClick(e, "Destinations")} className="text-sm font-medium text-secondary/70 hover:text-primary transition-colors cursor-pointer">Destinations</a>
-            <a href="#" onClick={(e) => handlePlaceholderClick(e, "Agents")} className="text-sm font-medium text-secondary/70 hover:text-primary transition-colors cursor-pointer">Agents</a>
-            <a href="#" onClick={(e) => handlePlaceholderClick(e, "Pricing")} className="text-sm font-medium text-secondary/70 hover:text-primary transition-colors cursor-pointer">Pricing</a>
+            <a href="#features" onClick={(e) => handleScrollToSection(e, "features")} className="text-sm font-medium text-secondary/70 hover:text-primary transition-colors cursor-pointer">Features</a>
+            <Link to="/auth" className="text-sm font-medium text-secondary/70 hover:text-primary transition-colors cursor-pointer">Agents</Link>
             <div className="w-px h-4 bg-neutral"></div>
             <Link to="/auth" className="text-sm font-medium text-secondary hover:text-primary transition-colors flex items-center">
               Sign In
@@ -62,9 +68,8 @@ export default function Navigation() {
             className="md:hidden bg-tertiary border-b border-neutral overflow-hidden"
           >
             <div className="px-4 pt-2 pb-6 space-y-4 flex flex-col">
-              <a href="#" onClick={(e) => handlePlaceholderClick(e, "Destinations")} className="text-secondary/70 hover:text-primary font-medium p-2">Destinations</a>
-              <a href="#" onClick={(e) => handlePlaceholderClick(e, "Agents")} className="text-secondary/70 hover:text-primary font-medium p-2">Agents</a>
-              <a href="#" onClick={(e) => handlePlaceholderClick(e, "Pricing")} className="text-secondary/70 hover:text-primary font-medium p-2">Pricing</a>
+              <a href="#features" onClick={(e) => handleScrollToSection(e, "features")} className="text-secondary/70 hover:text-primary font-medium p-2">Features</a>
+              <Link to="/auth" onClick={() => setIsMobileMenuOpen(false)} className="text-secondary/70 hover:text-primary font-medium p-2">Agents</Link>
               <Link to="/auth" onClick={() => setIsMobileMenuOpen(false)} className="text-secondary hover:text-primary font-medium p-2">
                 Sign In
               </Link>

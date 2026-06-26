@@ -8,6 +8,8 @@ import Navigation from '../components/Navigation';
 export default function Landing() {
   const navigate = useNavigate();
   const [destination, setDestination] = useState('');
+  const [date, setDate] = useState('');
+  const [guests, setGuests] = useState('2');
   const [isPlanning, setIsPlanning] = useState(false);
   const [planningStep, setPlanningStep] = useState(0);
 
@@ -33,12 +35,6 @@ export default function Landing() {
         setTimeout(() => navigate('/dashboard'), 800);
       }
     }, 1200);
-  };
-
-  const showPlaceholderToast = (feature: string) => {
-    toast.info(`${feature} selection coming soon!`, {
-      description: "For now, the AI can plan an open-ended itinerary for your destination."
-    });
   };
 
   return (
@@ -94,25 +90,33 @@ export default function Landing() {
                     />
                   </div>
                   
-                  <div 
-                    onClick={() => showPlaceholderToast("Dates")}
-                    className="flex items-center px-4 py-3 md:py-2 w-full md:w-auto hover:bg-neutral-light/30 transition-colors cursor-pointer group"
-                  >
-                    <Calendar className="w-5 h-5 text-secondary/40 mr-3 group-hover:text-primary transition-colors shrink-0" />
-                    <div className="flex flex-col text-left">
-                      <span className="text-xs text-secondary/50 font-medium uppercase tracking-wider">Dates</span>
-                      <span className="text-sm font-medium whitespace-nowrap">Add dates</span>
+                  <div className="flex items-center px-4 py-3 md:py-2 w-full md:w-auto border-t md:border-t-0 md:border-l border-neutral-light group">
+                    <Calendar className="w-5 h-5 text-secondary/40 mr-3 shrink-0" />
+                    <div className="flex flex-col w-full">
+                      <span className="text-[10px] text-secondary/50 font-medium uppercase tracking-wider mb-0.5">Dates</span>
+                      <input 
+                        type="date" 
+                        value={date}
+                        onChange={(e) => setDate(e.target.value)}
+                        className="bg-transparent text-sm outline-none text-secondary [&::-webkit-calendar-picker-indicator]:invert-[0.8] w-full" 
+                        disabled={isPlanning}
+                      />
                     </div>
                   </div>
 
-                  <div 
-                    onClick={() => showPlaceholderToast("Guests")}
-                    className="flex items-center px-4 py-3 md:py-2 w-full md:w-auto hover:bg-neutral-light/30 transition-colors cursor-pointer group"
-                  >
-                    <Users className="w-5 h-5 text-secondary/40 mr-3 group-hover:text-primary transition-colors shrink-0" />
-                    <div className="flex flex-col text-left">
-                      <span className="text-xs text-secondary/50 font-medium uppercase tracking-wider">Travelers</span>
-                      <span className="text-sm font-medium whitespace-nowrap">Add guests</span>
+                  <div className="flex items-center px-4 py-3 md:py-2 w-full md:w-auto border-t md:border-t-0 md:border-l border-neutral-light group">
+                    <Users className="w-5 h-5 text-secondary/40 mr-3 shrink-0" />
+                    <div className="flex flex-col w-full">
+                      <span className="text-[10px] text-secondary/50 font-medium uppercase tracking-wider mb-0.5">Travelers</span>
+                      <input 
+                        type="number" 
+                        min="1" 
+                        max="20"
+                        value={guests}
+                        onChange={(e) => setGuests(e.target.value)}
+                        className="bg-transparent text-sm outline-none text-secondary w-full" 
+                        disabled={isPlanning}
+                      />
                     </div>
                   </div>
 
@@ -200,7 +204,7 @@ export default function Landing() {
         </section>
 
         {/* Five Stages Section */}
-        <section className="py-24 bg-tertiary border-t border-neutral relative z-10">
+        <section id="features" className="py-24 bg-tertiary border-t border-neutral relative z-10">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center max-w-3xl mx-auto mb-20">
               <h2 className="text-4xl font-serif mb-6">Five Stages of Travel. One Platform.</h2>
