@@ -60,3 +60,30 @@ body {
   background-color: var(--color-tertiary);
   color: var(--color-secondary);
 }
+
+/* Leaflet Overrides */
+.leaflet-container {
+  background-color: var(--color-neutral) !important;
+  font-family: var(--font-sans) !important;
+}
+
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background-color: var(--color-secondary) !important;
+  color: var(--color-tertiary) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3) !important;
+}
+
+.leaflet-popup-content {
+  margin: 14px 16px !important;
+  line-height: 1.4 !important;
+}
+
+.leaflet-popup-close-button {
+  color: var(--color-tertiary) !important;
+  opacity: 0.5;
+}
+.leaflet-popup-close-button:hover {
+  opacity: 1;
+}

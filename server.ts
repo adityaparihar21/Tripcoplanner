@@ -52,6 +52,10 @@ Respond with a JSON object with this exact structure:
     "transport": 150,
     "activities": 250
   },
+  "centerCoordinates": {
+    "lat": 35.6762,
+    "lng": 139.6503
+  },
   "itinerary": [
     {
       "day": 1,
@@ -62,6 +66,10 @@ Respond with a JSON object with this exact structure:
           "duration": "2h",
           "title": "Visit Meiji Shrine",
           "location": "Shibuya City",
+          "coordinates": {
+            "lat": 35.6764,
+            "lng": 139.6993
+          },
           "cost": "Free",
           "note": "Best visited early morning to avoid crowds.",
           "imageSearchQuery": "Meiji Shrine Tokyo"
@@ -91,6 +99,7 @@ Respond with a JSON object with this exact structure:
       budget,
       guests,
       imagePrompt: result.imagePrompt,
+      centerCoordinates: result.centerCoordinates || { lat: 0, lng: 0 },
       budgetBreakdown: result.budgetBreakdown || { hotel: 0, food: 0, transport: 0, activities: 0 },
       itinerary: result.itinerary || []
     });
@@ -98,6 +107,33 @@ Respond with a JSON object with this exact structure:
   } catch (error) {
     console.error('Error generating trip:', error);
     res.status(500).json({ error: 'Failed to generate trip' });
+  }
+});
+
+// In-memory storage for shared trips (for prototype purposes)
+const sharedTrips = new Map<string, any>();
+
+app.post('/api/share', (req, res) => {
+  try {
+    const { trip } = req.body;
+    if (!trip) {
+      return res.status(400).json({ error: 'Trip data is required' });
+    }
+    const shareId = Math.random().toString(36).substring(2, 15);
+    sharedTrips.set(shareId, trip);
+    res.json({ shareId });
+  } catch (error) {
+    console.error('Error sharing trip:', error);
+    res.status(500).json({ error: 'Failed to share trip' });
+  }
+});
+
+app.get('/api/shared/:shareId', (req, res) => {
+  const trip = sharedTrips.get(req.params.shareId);
+  if (trip) {
+    res.json({ trip });
+  } else {
+    res.status(404).json({ error: 'Shared trip not found' });
   }
 });
 

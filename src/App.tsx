@@ -7,6 +7,7 @@ import Auth from './pages/Auth';
 import PlaceholderView from './pages/PlaceholderView';
 import Trips from './pages/Trips';
 import TripDetail from './pages/TripDetail';
+import SharedTrip from './pages/SharedTrip';
 import Saved from './pages/Saved';
 import Memories from './pages/Memories';
 import Settings from './pages/Settings';
@@ -20,6 +21,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/shared/:shareId" element={<SharedTrip />} />
           <Route path="/dashboard" element={<DashboardLayout />}>
             <Route index element={<DashboardOverview />} />
             <Route path="trips" element={<Trips />} />
